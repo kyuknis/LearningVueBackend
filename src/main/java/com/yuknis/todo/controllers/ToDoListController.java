@@ -1,6 +1,7 @@
 package com.yuknis.todo.controllers;
 
-import com.yuknis.todo.data.mysql.models.ToDoList;
+import com.yuknis.todo.data.dto.ToDoListDTO;
+import com.yuknis.todo.data.mysql.models.ToDoListModel;
 import com.yuknis.todo.data.mysql.repositories.ToDoListRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -19,12 +20,14 @@ public class ToDoListController {
     @Autowired
     ToDoListRepository repository;
 
+    ToDoListModel.Builder toDoListModelBuilder = new ToDoListModel.Builder();
+
     @GetMapping
-    public ResponseEntity<List<ToDoList>> index() {
+    public ResponseEntity<List<ToDoListModel>> index() {
 
-        ResponseEntity<List<ToDoList>> response;
+        ResponseEntity<List<ToDoListModel>> response;
 
-        List<ToDoList> lists = repository.findAll();
+        List<ToDoListModel> lists = repository.findAll();
         response = new ResponseEntity<>(lists, HttpStatus.OK);
 
         return response;
@@ -32,13 +35,13 @@ public class ToDoListController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Optional<ToDoList>> show(@PathVariable Long id) {
+    public ResponseEntity<Optional<ToDoListModel>> show(@PathVariable Long id) {
 
-        ResponseEntity<Optional<ToDoList>> response;
+        ResponseEntity<Optional<ToDoListModel>> response;
 
         if(repository.existsById(id)) {
 
-            Optional<ToDoList> record = repository.findById(id);
+            Optional<ToDoListModel> record = repository.findById(id);
             response = new ResponseEntity<>(record, HttpStatus.OK);
 
         } else {
@@ -52,11 +55,12 @@ public class ToDoListController {
     }
 
     @PostMapping
-    public ResponseEntity<ToDoList> store(@RequestBody @Valid ToDoList toDoList) {
+    public ResponseEntity<ToDoListModel> store(@RequestBody @Valid ToDoListDTO toDoListModel) {
 
         ResponseEntity response;
+        ToDoListModel persistentToDoListModel = toDoListModelBuilder.create(toDoListModel);
 
-        ToDoList storedToDo = repository.save(toDoList);
+        ToDoListModel storedToDo = repository.save(persistentToDoListModel);
         response = new ResponseEntity<>(storedToDo, HttpStatus.CREATED);
 
         return response;
@@ -70,7 +74,7 @@ public class ToDoListController {
 
         if(repository.existsById(id)) {
 
-            ToDoList model = new ToDoList();
+            ToDoListModel model = new ToDoListModel();
             model.setId(id);
             repository.delete(model);
 
